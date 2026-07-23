@@ -1,0 +1,45 @@
+# Python / local runtime
+venv/
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+
+# OS / editor
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/
+
+# Local databases and runtime state
+data/db/
+*.sqlite
+*.sqlite3
+*.db
+
+# Local config with secrets
+data/config/.env
+data/config/secrets_user.yaml
+data/config/*_user.yaml
+!data/config/*_default.yaml
+
+# Logs and temporary artifacts
+*.log
+tmp/
+temp/
+
+# Private key material
+*.pem
+*.key
+*.p12
+*.pfx
+id_rsa
+id_ed25519
+
+# Custom
+.claude
+.env
+venv_activate.bat
+output*.wav
+AGENTS.md
+CLAUDE.md

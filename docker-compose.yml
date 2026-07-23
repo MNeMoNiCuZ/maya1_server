@@ -1,0 +1,55 @@
+# Maya1 TTS server - Docker Compose deployment.
+#
+#   docker compose up --build        # build and start
+#   docker compose logs -f           # follow logs (watch for "Startup complete")
+#   docker compose down              # stop
+#
+# Requires: NVIDIA GPU + NVIDIA Container Toolkit on the host.
+# First start downloads ~6 GB of weights into the named volume `hf-cache`;
+# subsequent starts reuse it.
+#
+# The port is configured in exactly one place: MAYA1_PORT in .env.
+# (Compose auto-loads .env from this directory for ${...} interpolation
+# below; the ":-41217" fallback only kicks in if .env is missing entirely.)
+services:
+  maya1:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: maya1-server:latest
+    container_name: maya1-server
+    restart: unless-stopped
+    ports:
+      - "${MAYA1_PORT:-41217}:${MAYA1_PORT:-41217}"
+    env_file:
+      - .env
+    environment:
+      # Sensible defaults; override in .env.
+      MAYA1_HOST: "0.0.0.0"
+      MAYA1_PORT: "${MAYA1_PORT:-41217}"
+      MAYA1_DEVICE: "auto"
+      MAYA1_DTYPE: "bfloat16"
+    volumes:
+      # Persist downloaded HuggingFace weights across container recreations.
+      - hf-cache:/root/.cache/huggingface
+    # Reserve all available NVIDIA GPUs (Compose Device Requests API).
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: all
+              capabilities: [gpu]
+    healthcheck:
+      test:
+        - CMD-SHELL
+        - "curl -fsS http://localhost:${MAYA1_PORT:-41217}/health | grep -q '\"model_loaded\":true'"
+      interval: 30s
+      timeout: 10s
+      # Generous start period: first run must download weights before ready.
+      start_period: 600s
+      retries: 5
+
+volumes:
+  hf-cache:
+    driver: local

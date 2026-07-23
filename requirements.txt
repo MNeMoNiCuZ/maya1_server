@@ -1,0 +1,29 @@
+# Maya1 TTS server dependencies.
+#
+# NOTE: torch is intentionally NOT pinned here. It is installed in the
+# Dockerfile from the CUDA-matched wheel index (cu128). If you install this
+# file directly on a host, install a torch build that matches your CUDA
+# runtime first (see https://pytorch.org/get-started/locally/).
+#
+# NOTE: llama-cpp-python is ALSO intentionally not pinned/installed here - it
+# needs a CUDA-enabled build (compiled from source against nvcc) to actually
+# use the GPU, which the Dockerfile handles as its own step (CMAKE_ARGS +
+# `pip install llama-cpp-python`), the same way torch is handled above. A
+# plain `pip install -r requirements.txt` on a host gets you a CPU-only
+# llama-cpp-python; see docs/DEPLOYMENT.md if installing outside Docker.
+
+# --- Model / inference stack ---
+# transformers backend (MAYA1_USE_GGUF=false) - full precision, reference impl.
+transformers>=4.44,<5
+accelerate>=0.30
+# Shared by both backends.
+snac>=1.2.1
+huggingface_hub>=0.24
+soundfile>=0.12.1
+numpy>=1.26,<3
+
+# --- Web server ---
+fastapi>=0.110,<1
+uvicorn[standard]>=0.29
+pydantic>=2.6,<3
+pydantic-settings>=2.2,<3
